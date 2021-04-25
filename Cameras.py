@@ -160,7 +160,12 @@ def get_images():
     ####
     list_images = []
     path = 'Images/'
-    arr = os.listdir(path)
+    try:
+        arr = os.listdir(path)
+    except:
+        # In case that there is no images
+        print("There is no images")
+        return []
     # print("arrrr", arr)
     for dir in arr:
         have_to_send = False
@@ -231,5 +236,4 @@ def run_cameras():
             # save_image(frame)
             # print(q)
             time.sleep(1)
-
             index += 1
