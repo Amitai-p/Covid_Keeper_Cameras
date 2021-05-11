@@ -1,8 +1,9 @@
 from Cameras import *
 from flask import (
     Flask,
-    render_template,
-    jsonify, Response)
+    Response)
+from flask import jsonify
+import json, os, signal
 
 # Create the application instance
 app = Flask(__name__, template_folder="templates")
@@ -17,21 +18,22 @@ def home():
 
     :return:        the rendered template 'home.html'
     """
-    # return render_template('./home.html')
-    # print(get_images())
-    # main_list = ["1", "2", "3", "4"]
-    # return jsonify(main_list)
     list_images = get_images()
-    # print(list_images)
     data = {}
     for i in range(len(list_images)):
         key = 'img' + str(i)
-        # data[key] = base64.encodebytes(list_images[i]).decode('utf-8')
         data[key] = base64.encodebytes(list_images[i]).decode('utf-8')
-        # data[key] = list_images[i]
     result = json.dumps(data)
     print("result:   ", result)
     return Response(result)
+
+
+@app.route('/stop_server', methods=['GET'])
+def stopServer():
+    print("stopppp")
+    os.kill(os.getpid(), signal.SIGINT)
+    print("get pid")
+    return jsonify({"success": True, "message": "Server is shutting down..."})
 
 
 def run_server():

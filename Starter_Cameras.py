@@ -13,7 +13,7 @@ def start_all():
     x = threading.Thread(target=run_server)
     x.start()
     # run_server().run()
-    run_cameras()
+    run_cameras_iterate()
     x.join()
 
 
