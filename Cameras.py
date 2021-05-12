@@ -21,8 +21,15 @@ class list_images_class:
         return bytes(self)
 
 
-print("startttt")
-list_c = []
+def init_config():
+    config = {}
+    config["PATH_TO_IMAGES"] = 'Images'
+    config["THRESOLD_MSE"] = 30
+    config["THRESOLD_SIMILARITY"] = 0.8
+    return config
+
+
+config = init_config()
 
 
 # Get path to image and delete.
@@ -51,11 +58,13 @@ def get_list_of_cameras():
 
 # Get image, save local, return path.
 def save_image_in_folder(img, index):
-    if not os.path.exists('Images'):
-        os.makedirs('Images')
-    if not os.path.exists('Images/cam_' + str(index)):
-        os.makedirs('Images/cam_' + str(index))
-    path_to_save = 'Images/cam_' + str(index) + '/img_new.jpg'
+    name_folder_camera = '/cam_'
+    name_file = '/img_new.jpg'
+    if not os.path.exists(config["PATH_TO_IMAGES"]):
+        os.makedirs(config["PATH_TO_IMAGES"])
+    if not os.path.exists(config["PATH_TO_IMAGES"] + name_folder_camera + str(index)):
+        os.makedirs(config["PATH_TO_IMAGES"] + name_folder_camera + str(index))
+    path_to_save = config["PATH_TO_IMAGES"] + name_folder_camera + str(index) + name_file
     cv2.imwrite(path_to_save, img)
     return path_to_save
 
@@ -82,7 +91,7 @@ def compare_images(image1, image2, title="no title"):
         # index for the images
         m = mse(image1, image2)
         s = structural_similarity(image1, image2)
-        result = m < 30 and s > 0.8
+        result = m < config["THRESOLD_MSE"] and s > config["THRESOLD_SIMILARITY"]
         print("Res:  ", result, " m: ", m, "S: ", s)
         return result
     except:
@@ -98,10 +107,12 @@ def convert_image_to_varbinary(filename):
 
 
 def copy_image_in_last_image(path_to_folder):
-    delete_image(path_to_folder + '/last_img.jpg')
-    im1 = cv2.imread(path_to_folder + '/img_new.jpg')
+    name_of_last_file = '/last_img.jpg'
+    name_of_new_file = '/img_new.jpg'
+    delete_image(path_to_folder + name_of_last_file)
+    im1 = cv2.imread(path_to_folder + name_of_new_file)
     im2 = im1.copy()
-    path_to_copy = path_to_folder + '/last_img.jpg'
+    path_to_copy = path_to_folder + name_of_last_file
     cv2.imwrite(path_to_copy, im2)
 
 
@@ -109,7 +120,7 @@ def get_images():
     print("get images")
     ####
     list_images = []
-    path = 'Images/'
+    path = config["PATH_TO_IMAGES"]
     try:
         arr = os.listdir(path)
     except:
@@ -118,17 +129,19 @@ def get_images():
         return []
     for dir in arr:
         have_to_send = False
+        name_of_last_file = '/last_img.jpg'
+        name_of_new_file = '/img_new.jpg'
         file_path = path + dir
-        if os.path.isfile(file_path + '/img_new.jpg'):
-            if os.path.isfile(file_path + '/last_img.jpg'):
-                if not compare_images(file_path + '/img_new.jpg', file_path + '/last_img.jpg'):
+        if os.path.isfile(file_path + name_of_new_file):
+            if os.path.isfile(file_path + name_of_last_file):
+                if not compare_images(file_path + name_of_new_file, file_path + name_of_last_file):
                     copy_image_in_last_image(file_path)
                     have_to_send = True
             else:
                 copy_image_in_last_image(file_path)
                 have_to_send = True
         if have_to_send:
-            var_binary_image = convert_image_to_varbinary(file_path + '/last_img.jpg')
+            var_binary_image = convert_image_to_varbinary(file_path + name_of_last_file)
             list_images.append(var_binary_image)
     print("length of list images  ", len(list_images))
 

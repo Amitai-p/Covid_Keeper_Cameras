@@ -37,6 +37,7 @@ def stopServer():
 
 
 def run_server():
+    print(config)
     while True:
         try:
             from waitress import serve
