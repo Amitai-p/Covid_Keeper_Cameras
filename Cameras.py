@@ -3,7 +3,7 @@ import os
 import shutil
 import time
 from skimage.metrics import structural_similarity
-from azure_sql_server_actual import *
+from azure_sql_server import *
 
 
 class list_images_class:
@@ -23,7 +23,7 @@ class list_images_class:
 
 def init_config():
     config = {}
-    config["PATH_TO_IMAGES"] = 'Images'
+    config["PATH_TO_IMAGES"] = 'Images/'
     config["THRESOLD_MSE"] = 30
     config["THRESOLD_SIMILARITY"] = 0.8
     return config
@@ -41,7 +41,8 @@ def delete_image(path_to_image):
         print("The image doesn't exist")
 
 
-def get_list_of_cameras():
+def get_list_of_cameras(list_cameras):
+    delete_list_of_cameras(list_cameras)
     index = 0
     list_of_cameras = []
     while True:
@@ -54,6 +55,13 @@ def get_list_of_cameras():
             break
     print("num cameras: ", len(list_of_cameras))
     return list_of_cameras
+
+def delete_list_of_cameras(list_of_cameras):
+    for vid in list_of_cameras:
+        try:
+            vid.release()
+        except:
+            pass
 
 
 # Get image, save local, return path.
@@ -161,26 +169,24 @@ def delete_folder_images():
 def run_cameras_iterate():
     # counter = 0
     search_new_cameras = True
+    list_cameras = []
     # list_cameras = get_list_of_cameras()
+    b = Database()
     while True:
         # if flag == 0:
-        #     import time
-        #     search_new_cameras = True
-        #     time.sleep(5)
-        #     continue
-        # print("iter")
-        # if counter >= 5:
-        #     import time
-        #     time.sleep(5)
-        #     continue
-        # counter += 1
-
+        flag = b.start_or_close_threads()
+        print(flag)
+        if int(flag) == 0:
+            import time
+            search_new_cameras = True
+            time.sleep(5)
+            continue
         if search_new_cameras:
             try:
                 delete_folder_images()
             except:
                 pass
-            list_cameras = get_list_of_cameras()
+            list_cameras = get_list_of_cameras(list_cameras)
             search_new_cameras = False
         index = 0
         try:
