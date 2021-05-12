@@ -26,6 +26,7 @@ def init_config():
     config["PATH_TO_IMAGES"] = 'Images/'
     config["THRESOLD_MSE"] = 30
     config["THRESOLD_SIMILARITY"] = 0.8
+    config["TIME_TO_SLEEP"] = 5
     return config
 
 
@@ -179,7 +180,7 @@ def run_cameras_iterate():
         if int(flag) == 0:
             import time
             search_new_cameras = True
-            time.sleep(5)
+            time.sleep(config["TIME_TO_SLEEP"])
             continue
         if search_new_cameras:
             try:
