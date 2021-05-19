@@ -23,8 +23,10 @@ class list_images_class:
 
 
 NAME_COMPONENT = 'Camera'
+PORT_COMPONENT = '5000'
 b = Database()
 b.set_ip_by_table_name(NAME_COMPONENT)
+b.set_port_by_table_name(NAME_COMPONENT, PORT_COMPONENT)
 
 
 def init_config():
