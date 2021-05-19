@@ -37,11 +37,13 @@ def stopServer():
 
 
 def run_server():
-    print(config)
+    import socket
+    my_ip = socket.gethostbyname(socket.gethostname())
+    my_port = 5000
     while True:
         try:
             from waitress import serve
-            serve(app, host="127.0.0.1", port=5000)
+            serve(app, host=my_ip, port=my_port)
             # app.run(debug=True)
         except:
             a = 1

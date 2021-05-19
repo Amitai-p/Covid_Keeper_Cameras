@@ -12,7 +12,6 @@ from Cameras import *
 def start_all():
     x = threading.Thread(target=run_server)
     x.start()
-    # run_server().run()
     run_cameras_iterate()
     x.join()
 
@@ -26,4 +25,5 @@ def stop_all():
 
 # If we're running in stand alone mode, run the application
 if __name__ == '__main__':
+    # change_flag()
     start_all()

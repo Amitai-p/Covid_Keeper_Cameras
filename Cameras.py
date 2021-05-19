@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import time
+import cv2
 from skimage.metrics import structural_similarity
 from azure_sql_server import *
 
@@ -19,6 +20,11 @@ class list_images_class:
     def get_buffer(self):
         print("rteurn bytes")
         return bytes(self)
+
+
+NAME_COMPONENT = 'Camera'
+b = Database()
+b.set_ip_by_table_name(NAME_COMPONENT)
 
 
 def init_config():
@@ -56,6 +62,7 @@ def get_list_of_cameras(list_cameras):
             break
     print("num cameras: ", len(list_of_cameras))
     return list_of_cameras
+
 
 def delete_list_of_cameras(list_of_cameras):
     for vid in list_of_cameras:
@@ -167,12 +174,19 @@ def delete_folder_images():
         print("The directory already delete")
 
 
+def update_config_ip_port(config):
+    dict = b.get_ip_port_config(NAME_COMPONENT)
+    for conf in dict:
+        config[conf] = dict[conf]
+    return config
+
+
 def run_cameras_iterate():
     # counter = 0
     search_new_cameras = True
     list_cameras = []
     # list_cameras = get_list_of_cameras()
-    b = Database()
+
     while True:
         # if flag == 0:
         flag = b.start_or_close_threads()
