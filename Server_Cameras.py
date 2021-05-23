@@ -2,7 +2,7 @@ from Cameras import *
 from flask import (
     Flask,
     Response)
-from flask import jsonify
+from flask import jsonify, request
 import json, os, signal
 
 # Create the application instance
@@ -18,7 +18,12 @@ def home():
 
     :return:        the rendered template 'home.html'
     """
-    list_images = get_images()
+
+    if request.headers['authentication'] == config["PASSWORD_MANAGER"]:
+        list_images = get_images()
+    else:
+        list_images = []
+
     data = {}
     for i in range(len(list_images)):
         key = 'img' + str(i)

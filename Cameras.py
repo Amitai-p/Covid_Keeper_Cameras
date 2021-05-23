@@ -35,6 +35,7 @@ def init_config():
     config["THRESOLD_MSE"] = 30
     config["THRESOLD_SIMILARITY"] = 0.8
     config["TIME_TO_SLEEP"] = 5
+    config["PASSWORD_MANAGER"] = 'Amitai5925'
     return config
 
 
