@@ -40,6 +40,32 @@ def init_config():
 
 
 config = init_config()
+print(config)
+path_to_file = 'config_json.txt'
+
+
+# Insert the config into json file.
+def inset_dict_json(path_to_file, config):
+    config_json = json.dumps(config)
+    with open(path_to_file, 'w') as json_file:
+        json.dump(config_json, json_file)
+
+
+# Read the json file of the config.
+def read_json(path_to_file):
+    with open(path_to_file) as f:
+        # From file to string.
+        data = json.load(f)
+        # From string to dictionary.
+        data = json.loads(data)
+    return data
+
+
+inset_dict_json(path_to_file, config)
+data = read_json(path_to_file)
+print(type(data), type(config))
+print(data)
+print("equal: ", data == config)
 
 
 # Get path to image and delete.
@@ -51,6 +77,7 @@ def delete_image(path_to_image):
         print("The image doesn't exist")
 
 
+# Try to find all of the cameras that connected to this computer. Return list of the cameras open.
 def get_list_of_cameras(list_cameras):
     delete_list_of_cameras(list_cameras)
     index = 0
@@ -67,6 +94,7 @@ def get_list_of_cameras(list_cameras):
     return list_of_cameras
 
 
+# Get list of cameras that connected to this computer and free them.
 def delete_list_of_cameras(list_of_cameras):
     for vid in list_of_cameras:
         try:
@@ -88,17 +116,19 @@ def save_image_in_folder(img, index):
     return path_to_save
 
 
-def mse(imageA, imageB):
+# Check the 'Mean Squared Error' between two images.
+def mse(image1, image2):
     # the 'Mean Squared Error' between the two images is the
     # sum of the squared difference between the two images;
     # NOTE: the two images must have the same dimension
-    err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
-    err /= float(imageA.shape[0] * imageA.shape[1])
+    err = np.sum((image1.astype("float") - image2.astype("float")) ** 2)
+    err /= float(image1.shape[0] * image1.shape[1])
     # return the MSE, the lower the error, the more "similar"
     # the two images are
     return err
 
 
+# Compare the difference between 2 images to know if this is almost the same image.
 def compare_images(image1, image2, title="no title"):
     try:
         image1 = cv2.imread(image1)
@@ -111,12 +141,12 @@ def compare_images(image1, image2, title="no title"):
         m = mse(image1, image2)
         s = structural_similarity(image1, image2)
         result = m < config["THRESOLD_MSE"] and s > config["THRESOLD_SIMILARITY"]
-        print("Res:  ", result, " m: ", m, "S: ", s)
         return result
     except:
         return False
 
 
+# Convert image to format that we can send in restApi.
 def convert_image_to_varbinary(filename):
     image = open(filename, 'rb')
     image_read = image.read()
@@ -125,6 +155,7 @@ def convert_image_to_varbinary(filename):
     return image_64_encode
 
 
+# Get path to folder of camera. Copy the new image to be the last image that we sent.
 def copy_image_in_last_image(path_to_folder):
     name_of_last_file = '/last_img.jpg'
     name_of_new_file = '/img_new.jpg'
@@ -135,9 +166,9 @@ def copy_image_in_last_image(path_to_folder):
     cv2.imwrite(path_to_copy, im2)
 
 
+# After that the Manager call the get methood we give him list of images from all the cameras.
 def get_images():
     print("get images")
-    ####
     list_images = []
     path = config["PATH_TO_IMAGES"]
     try:
@@ -163,20 +194,24 @@ def get_images():
             var_binary_image = convert_image_to_varbinary(file_path + name_of_last_file)
             list_images.append(var_binary_image)
     print("length of list images  ", len(list_images))
-
     return list_images
 
 
+# When we start run this service, we want that all of the images will be nwe and update.
 def delete_folder_images():
-    path_to_images = 'Images'
-    if os.path.exists(path_to_images):
-        # removing the file using the os.remove() method
-        shutil.rmtree(path_to_images)
-    else:
-        # file not found message
-        print("The directory already delete")
+    try:
+        path_to_images = 'Images'
+        if os.path.exists(path_to_images):
+            # removing the file using the os.remove() method
+            shutil.rmtree(path_to_images)
+        else:
+            # file not found message
+            print("The directory already delete")
+    except:
+        pass
 
 
+# After change the flag of new config, we update the config to our memory.
 def update_config_ip_port(config):
     dict = b.get_ip_port_config(NAME_COMPONENT)
     for conf in dict:
@@ -184,32 +219,33 @@ def update_config_ip_port(config):
     return config
 
 
+# This is make the cameras iterate of take one frmae from all of the cameras and check the flag if we need to be
+# activate before all of the iterations.
 def run_cameras_iterate():
-    # counter = 0
+    # Flag to know if we just now wake uo and have to search new cameras.
     search_new_cameras = True
+    have_to_delete_cameras = False
     list_cameras = []
-    # list_cameras = get_list_of_cameras()
-
     while True:
-        # if flag == 0:
         flag = b.start_or_close_threads()
-        print(flag)
+        print('The flag of activate cameras:', flag)
         if int(flag) == 0:
             import time
             search_new_cameras = True
             time.sleep(config["TIME_TO_SLEEP"])
+            if not have_to_delete_cameras:
+                have_to_delete_cameras = True
+                delete_list_of_cameras(list_cameras)
             continue
+        else:
+            have_to_delete_cameras = False
         if search_new_cameras:
-            try:
-                delete_folder_images()
-            except:
-                pass
+            delete_folder_images()
             list_cameras = get_list_of_cameras(list_cameras)
             search_new_cameras = False
         index = 0
         try:
             for vid0 in list_cameras:
-                # In case of close
                 # Capture the video frame
                 ret, frame = vid0.read()
                 if not ret:
