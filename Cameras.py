@@ -219,6 +219,16 @@ def update_config_ip_port(config):
     return config
 
 
+def generate_key():
+    """
+    Generates a key and save it into a file
+    """
+    from cryptography.fernet import Fernet
+    key = Fernet.generate_key()
+    with open("secret.key", "wb") as key_file:
+        key_file.write(key)
+
+
 # This is make the cameras iterate of take one frmae from all of the cameras and check the flag if we need to be
 # activate before all of the iterations.
 def run_cameras_iterate():
