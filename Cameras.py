@@ -39,11 +39,6 @@ def init_config():
     return config
 
 
-config = init_config()
-print(config)
-path_to_file = 'config_json.txt'
-
-
 # Insert the config into json file.
 def inset_dict_json(path_to_file, config):
     config_json = json.dumps(config)
@@ -61,11 +56,8 @@ def read_json(path_to_file):
     return data
 
 
-inset_dict_json(path_to_file, config)
-data = read_json(path_to_file)
-print(type(data), type(config))
-print(data)
-print("equal: ", data == config)
+PATH_TO_CONFIG = 'config_json.txt'
+config = read_json(PATH_TO_CONFIG)
 
 
 # Get path to image and delete.

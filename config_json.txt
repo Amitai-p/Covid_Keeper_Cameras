@@ -1,0 +1,1 @@
+"{\"PATH_TO_IMAGES\": \"Images/\", \"THRESOLD_MSE\": 30, \"THRESOLD_SIMILARITY\": 0.8, \"TIME_TO_SLEEP\": 5, \"PASSWORD_MANAGER\": \"Amitai5925\"}"
