@@ -8,6 +8,10 @@ import json, os, signal
 # Create the application instance
 app = Flask(__name__, template_folder="templates")
 
+import hashlib
+
+def hash_password(password):
+    return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 def load_key():
     """
@@ -25,11 +29,11 @@ def home():
 
     :return:        the rendered template 'home.html'
     """
-    # list_images = get_images()
-    if request.headers['authentication'] == config["PASSWORD_MANAGER"]:
 
-        list_images = get_images()
-    else:
+    try:
+        if hash_password(request.headers['authentication']) == config["PASSWORD_MANAGER"]:
+            list_images = get_images()
+    except:
         list_images = []
     data = {}
     for i in range(len(list_images)):
