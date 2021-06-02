@@ -2,6 +2,8 @@ import json
 import os
 import shutil
 import time
+from threading import Lock
+
 import cv2
 from skimage.metrics import structural_similarity
 from azure_sql_server import *
@@ -21,6 +23,8 @@ class list_images_class:
         print("rteurn bytes")
         return bytes(self)
 
+
+mutex = Lock()
 
 NAME_COMPONENT = 'Camera'
 PORT_COMPONENT = '5000'
@@ -205,7 +209,9 @@ def delete_folder_images():
 
 # After change the flag of new config, we update the config to our memory.
 def update_config_ip_port(config):
+    mutex.acquire()
     dict = b.get_ip_port_config(NAME_COMPONENT)
+    mutex.release()
     for conf in dict:
         config[conf] = dict[conf]
     return config
@@ -229,7 +235,9 @@ def run_cameras_iterate():
     have_to_delete_cameras = False
     list_cameras = []
     while True:
+        mutex.acquire()
         flag = b.start_or_close_threads()
+        mutex.release()
         print('The flag of activate cameras:', flag)
         if int(flag) == 0:
             import time
