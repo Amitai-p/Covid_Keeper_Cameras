@@ -1,10 +1,7 @@
 import json
 import os
 import shutil
-import time
 from threading import Lock
-
-import cv2
 from skimage.metrics import structural_similarity
 from azure_sql_server import *
 
@@ -30,6 +27,7 @@ NAME_COMPONENT = 'Camera'
 PORT_COMPONENT = '5000'
 b = Database()
 b.set_ip_by_table_name(NAME_COMPONENT)
+b.set_port_by_table_name(NAME_COMPONENT, PORT_COMPONENT)
 b.set_port_by_table_name(NAME_COMPONENT, PORT_COMPONENT)
 
 
@@ -268,21 +266,3 @@ def run_cameras_iterate():
         import time
         time.sleep(1)
 
-
-def run_cameras():
-    delete_folder_images()
-    list_cameras = get_list_of_cameras()
-    while True:
-        index = 0
-        for vid0 in list_cameras:
-            # In case of close
-            # Capture the video frame
-            ret, frame = vid0.read()
-            if not ret:
-                print("There is no frame to read")
-                continue
-            save_image_in_folder(frame, index)
-            # save_image(frame)
-            # print(q)
-            time.sleep(1)
-            index += 1
