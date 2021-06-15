@@ -8,28 +8,20 @@ from azure_sql_server import *
 mutex = Lock()
 NAME_COMPONENT = 'Camera'
 PORT_COMPONENT = '5000'
+NAME_OF_LAST_NAME = '/last_img.jpg'
+NAME_OF_NEW_FILE = '/img_new.jpg'
+PATH_TO_CONFIG = 'config_json.txt'
+NAME_FOLDER_CAMERA = '/cam_'
+NAME_FILE = '/img_new.jpg'
+KEY_OF_PATH_TO_IMAGES = "PATH_TO_IMAGES"
+KEY_OF_THRESOLD_MSE = "THRESOLD_MSE"
+KEY_OF_THRESOLD_SIMILARITY = "THRESOLD_SIMILARITY"
+KEY_OF_TIME_TO_SLEEP = "TIME_TO_SLEEP"
+PATH_TO_SECRET_KEY = "secret.key"
 b = Database()
 b.set_ip_by_table_name(NAME_COMPONENT)
 b.set_port_by_table_name(NAME_COMPONENT, PORT_COMPONENT)
 b.set_port_by_table_name(NAME_COMPONENT, PORT_COMPONENT)
-
-
-# Init the configuration of the program.
-def init_config():
-    config = {}
-    config["PATH_TO_IMAGES"] = 'Images/'
-    config["THRESOLD_MSE"] = 30
-    config["THRESOLD_SIMILARITY"] = 0.8
-    config["TIME_TO_SLEEP"] = 5
-    config["PASSWORD_MANAGER"] = '3f1c400a02cc171a39fd05da325d7863afb2e3728d6448cc79c4e96f4de6eeac'
-    return config
-
-
-# Insert the config into json file.
-def inset_dict_json(path_to_file, config):
-    config_json = json.dumps(config)
-    with open(path_to_file, 'w') as json_file:
-        json.dump(config_json, json_file)
 
 
 # Read the json file of the config.
@@ -42,7 +34,6 @@ def read_json(path_to_file):
     return data
 
 
-PATH_TO_CONFIG = 'config_json.txt'
 config = read_json(PATH_TO_CONFIG)
 
 
@@ -83,13 +74,11 @@ def delete_list_of_cameras(list_of_cameras):
 
 # Get image, save local, return path.
 def save_image_in_folder(img, index):
-    name_folder_camera = '/cam_'
-    name_file = '/img_new.jpg'
-    if not os.path.exists(config["PATH_TO_IMAGES"]):
-        os.makedirs(config["PATH_TO_IMAGES"])
-    if not os.path.exists(config["PATH_TO_IMAGES"] + name_folder_camera + str(index)):
-        os.makedirs(config["PATH_TO_IMAGES"] + name_folder_camera + str(index))
-    path_to_save = config["PATH_TO_IMAGES"] + name_folder_camera + str(index) + name_file
+    if not os.path.exists(config[KEY_OF_PATH_TO_IMAGES]):
+        os.makedirs(config[KEY_OF_PATH_TO_IMAGES])
+    if not os.path.exists(config[KEY_OF_PATH_TO_IMAGES] + NAME_FOLDER_CAMERA + str(index)):
+        os.makedirs(config[KEY_OF_PATH_TO_IMAGES] + NAME_FOLDER_CAMERA + str(index))
+    path_to_save = config[KEY_OF_PATH_TO_IMAGES] + NAME_FOLDER_CAMERA + str(index) + NAME_FILE
     cv2.imwrite(path_to_save, img)
     return path_to_save
 
@@ -116,7 +105,7 @@ def compare_images(image1, image2, title="no title"):
         # index for the images
         m = mse(image1, image2)
         s = structural_similarity(image1, image2)
-        result = m < config["THRESOLD_MSE"] and s > config["THRESOLD_SIMILARITY"]
+        result = m < config[KEY_OF_THRESOLD_MSE] and s > config[KEY_OF_THRESOLD_SIMILARITY]
         return result
     except:
         return False
@@ -133,12 +122,10 @@ def convert_image_to_varbinary(filename):
 
 # Get path to folder of camera. Copy the new image to be the last image that we sent.
 def copy_image_in_last_image(path_to_folder):
-    name_of_last_file = '/last_img.jpg'
-    name_of_new_file = '/img_new.jpg'
-    delete_image(path_to_folder + name_of_last_file)
-    im1 = cv2.imread(path_to_folder + name_of_new_file)
+    delete_image(path_to_folder + NAME_OF_LAST_NAME)
+    im1 = cv2.imread(path_to_folder + NAME_OF_NEW_FILE)
     im2 = im1.copy()
-    path_to_copy = path_to_folder + name_of_last_file
+    path_to_copy = path_to_folder + NAME_OF_LAST_NAME
     cv2.imwrite(path_to_copy, im2)
 
 
@@ -146,7 +133,7 @@ def copy_image_in_last_image(path_to_folder):
 def get_images():
     print("get images")
     list_images = []
-    path = config["PATH_TO_IMAGES"]
+    path = config[KEY_OF_PATH_TO_IMAGES]
     try:
         arr = os.listdir(path)
     except:
@@ -155,19 +142,17 @@ def get_images():
         return []
     for dir in arr:
         have_to_send = False
-        name_of_last_file = '/last_img.jpg'
-        name_of_new_file = '/img_new.jpg'
         file_path = path + dir
-        if os.path.isfile(file_path + name_of_new_file):
-            if os.path.isfile(file_path + name_of_last_file):
-                if not compare_images(file_path + name_of_new_file, file_path + name_of_last_file):
+        if os.path.isfile(file_path + NAME_OF_NEW_FILE):
+            if os.path.isfile(file_path + NAME_OF_LAST_NAME):
+                if not compare_images(file_path + NAME_OF_NEW_FILE, file_path + NAME_OF_LAST_NAME):
                     copy_image_in_last_image(file_path)
                     have_to_send = True
             else:
                 copy_image_in_last_image(file_path)
                 have_to_send = True
         if have_to_send:
-            var_binary_image = convert_image_to_varbinary(file_path + name_of_last_file)
+            var_binary_image = convert_image_to_varbinary(file_path + NAME_OF_LAST_NAME)
             list_images.append(var_binary_image)
     print("length of list images  ", len(list_images))
     return list_images
@@ -197,7 +182,6 @@ def update_config_ip_port(config):
     return config
 
 
-PATH_TO_SECRET_KEY = "secret.key"
 # generate secret key for the manager and the cameras.
 def generate_key():
     """
@@ -224,7 +208,7 @@ def run_cameras_iterate():
         if int(flag) == 0:
             import time
             search_new_cameras = True
-            time.sleep(config["TIME_TO_SLEEP"])
+            time.sleep(config[KEY_OF_TIME_TO_SLEEP])
             if not have_to_delete_cameras:
                 have_to_delete_cameras = True
                 delete_list_of_cameras(list_cameras)

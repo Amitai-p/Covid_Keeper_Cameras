@@ -2,18 +2,13 @@ from Cameras import *
 from flask import (
     Flask,
 )
-
 import json
 
+NAME_IMAGE = 'img'
 # Create the application instance
 app = Flask(__name__, template_folder="templates")
-
-import hashlib
-
-
-# Get password and return the hash of this string.
-def hash_password(password):
-    return hashlib.sha256(password.encode('utf-8')).hexdigest()
+START_PROGRAM = 1
+TIME_TO_SLEEP_IN_RUN_SERVER = 5
 
 
 # Load the secret key for the cameras and the manager.
@@ -22,9 +17,6 @@ def load_key():
     Loads the key named `secret.key` from the current directory.
     """
     return open(PATH_TO_SECRET_KEY, "rb").read()
-
-
-NAME_IMAGE = 'img'
 
 
 # Get the images for sending to storage for the manager.
@@ -49,7 +41,7 @@ def get_images_for_sending():
 # Run the server so that the cameras will listen when they have to send images to the manager.
 def run_server():
     import time
-    time.sleep(5)
+    time.sleep(TIME_TO_SLEEP_IN_RUN_SERVER)
     while True:
         try:
             # Lock the mutex of the DB.
@@ -58,7 +50,7 @@ def run_server():
             # Unlock the mutex of the DB.
             mutex.release()
             print("flag sending to storage:", flag)
-            if int(flag) == 1:
+            if int(flag) == START_PROGRAM:
                 images = get_images_for_sending()
                 # Lock the mutex of the DB.
                 mutex.acquire()

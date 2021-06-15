@@ -1,7 +1,4 @@
 import threading
-
-import psutil as psutil
-
 from Server_Cameras import *
 from Cameras import *
 
@@ -14,7 +11,6 @@ def start_all():
     x.start()
     run_cameras_iterate()
     x.join()
-
 
 
 # If we're running in stand alone mode, run the application
