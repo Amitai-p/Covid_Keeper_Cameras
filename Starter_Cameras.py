@@ -16,12 +16,6 @@ def start_all():
     x.join()
 
 
-import hashlib
-
-
-def hash_password(password):
-    return hashlib.sha256(password.encode('utf-8')).hexdigest()
-
 
 # If we're running in stand alone mode, run the application
 if __name__ == '__main__':

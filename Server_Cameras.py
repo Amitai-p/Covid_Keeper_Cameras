@@ -11,60 +11,33 @@ app = Flask(__name__, template_folder="templates")
 import hashlib
 
 
+# Get password and return the hash of this string.
 def hash_password(password):
     return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 
+# Load the secret key for the cameras and the manager.
 def load_key():
     """
     Loads the key named `secret.key` from the current directory.
     """
-    return open("secret.key", "rb").read()
+    return open(PATH_TO_SECRET_KEY, "rb").read()
 
 
-#
-# # Create a URL route in our application for "/"
-# @app.route('/')
-# def home():
-#     """
-#     This function just responds to the browser ULR
-#     localhost:5000/
-#
-#     :return:        the rendered template 'home.html'
-#     """
-#     print("in home")
-#
-#     try:
-#         if hash_password(request.headers['authentication']) == config["PASSWORD_MANAGER"]:
-#             list_images = get_images()
-#     except:
-#         list_images = []
-#     data = {}
-#     for i in range(len(list_images)):
-#         key = 'img' + str(i)
-#         data[key] = base64.encodebytes(list_images[i]).decode('utf-8')
-#     result = json.dumps(data)
-#     print("result:   ", result)
-#     from cryptography.fernet import Fernet
-#     key = load_key()
-#     encoded_message = result.encode()
-#     f = Fernet(key)
-#     encrypted_message = f.encrypt(encoded_message)
-#     # frame = Fernet.encrypt(frame)
-#     print("frame: ", encrypted_message)
-#     result = encrypted_message
-#     return Response(result)
+NAME_IMAGE = 'img'
 
 
+# Get the images for sending to storage for the manager.
 def get_images_for_sending():
     list_images = get_images()
     data = {}
     for i in range(len(list_images)):
-        key = 'img' + str(i)
+        key = NAME_IMAGE + str(i)
         data[key] = base64.encodebytes(list_images[i]).decode('utf-8')
     result = json.dumps(data)
     from cryptography.fernet import Fernet
     key = load_key()
+    # Encode the message.
     encoded_message = result.encode()
     f = Fernet(key)
     encrypted_message = f.encrypt(encoded_message)
@@ -73,22 +46,28 @@ def get_images_for_sending():
     return result
 
 
+# Run the server so that the cameras will listen when they have to send images to the manager.
 def run_server():
     import time
     time.sleep(5)
     while True:
         try:
+            # Lock the mutex of the DB.
             mutex.acquire()
             flag = b.get_camera_config_flag()
+            # Unlock the mutex of the DB.
             mutex.release()
             print("flag sending to storage:", flag)
             if int(flag) == 1:
                 images = get_images_for_sending()
+                # Lock the mutex of the DB.
                 mutex.acquire()
                 b.upload_images_txt_to_storage(images)
                 b.set_camera_config_flag_from_camera()
+                # Unlock the mutex of the DB.
                 mutex.release()
             import time
+            # Wait for the next round.s
             time.sleep(1)
         except:
-            a = 1
+            pass

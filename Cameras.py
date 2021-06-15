@@ -5,24 +5,7 @@ from threading import Lock
 from skimage.metrics import structural_similarity
 from azure_sql_server import *
 
-
-class list_images_class:
-    def __init__(self, list_images):
-        self.list_images = list_images
-
-    def to_json(self):
-        '''
-        convert the instance of this class to json
-        '''
-        return json.dumps(self, indent=4, default=lambda o: o.__dict__)
-
-    def get_buffer(self):
-        print("rteurn bytes")
-        return bytes(self)
-
-
 mutex = Lock()
-
 NAME_COMPONENT = 'Camera'
 PORT_COMPONENT = '5000'
 b = Database()
@@ -31,6 +14,7 @@ b.set_port_by_table_name(NAME_COMPONENT, PORT_COMPONENT)
 b.set_port_by_table_name(NAME_COMPONENT, PORT_COMPONENT)
 
 
+# Init the configuration of the program.
 def init_config():
     config = {}
     config["PATH_TO_IMAGES"] = 'Images/'
@@ -114,11 +98,9 @@ def save_image_in_folder(img, index):
 def mse(image1, image2):
     # the 'Mean Squared Error' between the two images is the
     # sum of the squared difference between the two images;
-    # NOTE: the two images must have the same dimension
     err = np.sum((image1.astype("float") - image2.astype("float")) ** 2)
     err /= float(image1.shape[0] * image1.shape[1])
-    # return the MSE, the lower the error, the more "similar"
-    # the two images are
+    # return the MSE.
     return err
 
 
@@ -215,13 +197,15 @@ def update_config_ip_port(config):
     return config
 
 
+PATH_TO_SECRET_KEY = "secret.key"
+# generate secret key for the manager and the cameras.
 def generate_key():
     """
     Generates a key and save it into a file
     """
     from cryptography.fernet import Fernet
     key = Fernet.generate_key()
-    with open("secret.key", "wb") as key_file:
+    with open(PATH_TO_SECRET_KEY, "wb") as key_file:
         key_file.write(key)
 
 
@@ -265,4 +249,3 @@ def run_cameras_iterate():
             pass
         import time
         time.sleep(1)
-
