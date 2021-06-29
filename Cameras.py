@@ -8,6 +8,7 @@ from azure_sql_server import *
 mutex = Lock()
 NAME_COMPONENT = 'Camera'
 PORT_COMPONENT = '5000'
+NAME_OF_FOLDER_IMAGES = 'Images'
 NAME_OF_LAST_NAME = '/last_img.jpg'
 NAME_OF_NEW_FILE = '/img_new.jpg'
 PATH_TO_CONFIG = 'config_json.txt'
@@ -161,10 +162,9 @@ def get_images():
 # When we start run this service, we want that all of the images will be nwe and update.
 def delete_folder_images():
     try:
-        path_to_images = 'Images'
-        if os.path.exists(path_to_images):
+        if os.path.exists(NAME_OF_FOLDER_IMAGES):
             # removing the file using the os.remove() method
-            shutil.rmtree(path_to_images)
+            shutil.rmtree(NAME_OF_FOLDER_IMAGES)
         else:
             # file not found message
             print("The directory already delete")
