@@ -1,7 +1,13 @@
+import base64
+import io
 import textwrap
-import pyodbc
-from azure.storage.blob import BlobClient
+import numpy as np
 import cv2
+import pyodbc
+import datetime
+from azure.storage.blob import BlobClient
+
+
 class Database:
     is_connection = False
     _CONNECTION_STRING = 'DefaultEndpointsProtocol=https;' \
@@ -58,7 +64,22 @@ class Database:
         self.crsr.commit()
         self.close_cursor()
 
+    def fetch_photo(self, user_id: str) -> bytes:
+        blob_client = BlobClient.from_connection_string(conn_str=self._CONNECTION_STRING, container_name=self.
+                                                        _CONTAINER, blob_name=self._generate_blob_name(user_id))
+        blob_stream = blob_client.download_blob()
 
+        return blob_stream.readall()
+
+    @staticmethod
+    def _generate_blob_name(user_id):
+        return f'{user_id}.jpg'
+
+    def convert_bytes_to_image(self, data):
+        stream = io.BytesIO(data)
+        _stream = stream.getvalue()
+        image = cv2.imdecode(np.fromstring(_stream, dtype=np.uint8), 1)
+        return image
 
     def get_ip_port_config(self, table_name):
         result = self.select_query_of_one_row("select Manager_port, Manager_ip, Analayzer_port, Analayzer_ip, "
