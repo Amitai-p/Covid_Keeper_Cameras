@@ -1,7 +1,7 @@
 import textwrap
 import pyodbc
 from azure.storage.blob import BlobClient
-
+import cv2
 class Database:
     is_connection = False
     _CONNECTION_STRING = 'DefaultEndpointsProtocol=https;' \
